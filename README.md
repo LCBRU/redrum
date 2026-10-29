@@ -1,2 +1,2 @@
-# redrum
-Redcap Release Update Manager
+# REDRum - Redcap Release Update Manager
+
