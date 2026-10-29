@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-redrum = "redrum.cli:main"
+redrum = "redrum:main"
 
 [dependency-groups]
 dev = [
