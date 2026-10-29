@@ -1,14 +1,3 @@
-#!/usr/bin/env -S uv run --script
-
-# /// script
-# requires-python = ">=3.14"
-# dependencies = [
-#     "rich",
-#     "looseversion",
-#     "platformdirs",
-# ]
-# ///
-
 from collections.abc import Generator
 from contextlib import contextmanager
 
