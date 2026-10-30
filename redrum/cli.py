@@ -103,11 +103,11 @@ def get_hostnames_from_ssh_config() ->list[str]:
             )
 
     if config["ssh_hostname_regex"]:
-        hostnames = [
+        hostnames = sorted([
             hostname
             for hostname in hostnames
             if re.search(config["ssh_hostname_regex"], hostname)
-        ]
+        ])
 
     return {h: {
         "hostname": h,
