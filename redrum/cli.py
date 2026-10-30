@@ -119,12 +119,13 @@ def select_server() -> str | None:
     if not servers:
         servers = get_hostnames_from_ssh_config()
 
-    selected =  select_item_from_list(
+    selected = select_item_from_list(
         title="Available Servers",
         items=servers.keys(),
     )
 
-    return servers[selected]
+    if selected:
+        return servers[selected]
     
 
 @contextmanager
