@@ -21,6 +21,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "download_path": platform_dirs.user_downloads_dir,
     "servers": {},
     "ssh_hostname_regex": None,
+    "redcap_directory": "/local/www/htdocs",
 }
 
 
@@ -113,7 +114,7 @@ def get_hostnames_from_ssh_config() ->list[str]:
     } for h in hostnames}
 
 
-def select_server() -> str | None:
+def select_server() -> dict | None:
     servers = config["servers"]
 
     if not servers:
@@ -140,12 +141,14 @@ def redcap_folder(upgrade_file: Path) -> Generator[Path]:
         yield redcap_folder
 
 
-def upgrade_redcap(redcap_folder: Path, server: str) -> None:
+def upgrade_redcap(redcap_folder: Path, server: dict) -> None:
     console.print(
         f"Upgrading REDCap on server {server} using files from {redcap_folder} ..."
     )
 
-    subprocess.check_output(['scp', '-r', redcap_folder, f'{server}:/local/www/htdocs'])
+    redcap_directory = server.get("redcap_directory", config["redcap_directory"])
+
+    subprocess.check_output(['scp', '-r', redcap_folder, f'{server}:{redcap_directory}'])
 
     console.print(f"[green]Upgrade completed successfully on server {server}.[/green]")
     Prompt.ask(
