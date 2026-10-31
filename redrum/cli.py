@@ -19,9 +19,10 @@ console = Console()
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "download_path": platform_dirs.user_downloads_dir,
-    "servers": {},
+    "servers": [],
+    "ssh_config_path": Path.home() / ".ssh" / "config",
     "ssh_hostname_regex": None,
-    "redcap_directory": "/local/www/htdocs",
+    "redcap_directory": "/var/www/htdocs",
 }
 
 
@@ -85,7 +86,8 @@ def select_upgrade_file() -> Path | None:
 
 
 def get_hostnames_from_ssh_config() ->list[str]:
-    ssh_config = Path.home() / ".ssh" / "config"
+    ssh_config = Path(config["ssh_config_path"])
+
     if not ssh_config.is_file():
         return []
 
