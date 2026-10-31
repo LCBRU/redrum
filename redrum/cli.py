@@ -39,7 +39,7 @@ def load_config() -> dict:
 config = load_config()
 
 
-def select_item_from_list(title: str, items: list[str]) -> str|None:
+def select_item_from_list(title: str, columns: list[str], items: dict[str, dict[str, str]]) -> str|None:
 
     if not items:
         return None
@@ -47,10 +47,18 @@ def select_item_from_list(title: str, items: list[str]) -> str|None:
     table = Table(title=title)
 
     table.add_column("Option", justify="right", style="cyan", no_wrap=True)
-    table.add_column("File", style="magenta")
 
-    for i, f in enumerate(items, 1):
-        table.add_row(str(i), f)
+    for c in columns:
+        table.add_column(c.title(), style="magenta")
+
+    for i, (_, f) in enumerate(items.items(), 1):
+        print(f)
+        cols = [str(i)]
+
+        for c in columns:
+            cols.append(f[c])
+
+        table.add_row(*cols)
 
     console.clear()
     console.print(table)
@@ -62,7 +70,7 @@ def select_item_from_list(title: str, items: list[str]) -> str|None:
     )
 
     if result.isnumeric():
-        return items[int(result) - 1]
+        return list(items.keys())[int(result) - 1]
 
 
 def select_upgrade_file() -> Path | None:
@@ -76,9 +84,15 @@ def select_upgrade_file() -> Path | None:
         key=LooseVersion,
     )
 
+    uf_dict = {
+        f: {"file": f}
+        for f in upgrade_files
+    }
+
     result = select_item_from_list(
         title="Available Upgrade Files",
-        items=upgrade_files,
+        columns=['file'],
+        items=uf_dict,
     )
 
     if result:
@@ -117,19 +131,24 @@ def get_hostnames_from_ssh_config() ->list[str]:
 
 
 def select_server() -> dict | None:
+    DEFAULT_SERVER: dict[str, Any] = {
+        "redcap_directory": config["redcap_directory"],
+    }
+
     servers = config["servers"]
 
     if not servers:
         servers = get_hostnames_from_ssh_config()
 
     server_dict = {
-        s['hostname']: s
+        s['hostname']: DEFAULT_SERVER | s
         for s in servers
     }
 
     selected = select_item_from_list(
         title="Available Servers",
-        items=server_dict.keys(),
+        columns=['hostname', 'redcap_directory'],
+        items=server_dict,
     )
 
     if selected:
@@ -153,11 +172,12 @@ def upgrade_redcap(redcap_folder: Path, server: dict) -> None:
         f"Upgrading REDCap on server {server} using files from {redcap_folder} ..."
     )
 
-    redcap_directory = server.get("redcap_directory", config["redcap_directory"])
+    subprocess.check_output(['scp', '-r', redcap_folder, f'{server["hostname"]}:{server["redcap_directory"]}'])
 
-    subprocess.check_output(['scp', '-r', redcap_folder, f'{server}:{redcap_directory}'])
-
-    console.print(f"[green]Upgrade completed successfully on server {server}.[/green]")
+    console.print(
+        f"[green]Upgrade completed successfully on server {server['hostname']} "
+        f"to directory {server['redcap_directory']}.[/green]"
+    )
     Prompt.ask(
         "[orange]Package copied.  Complete the upgrade in the REDCap front "
         "end...[/orange]"
