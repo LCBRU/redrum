@@ -109,9 +109,9 @@ def get_hostnames_from_ssh_config() ->list[str]:
             if re.search(config["ssh_hostname_regex"], hostname)
         ])
 
-    return {h: {
+    return [{
         "hostname": h,
-    } for h in hostnames}
+    } for h in hostnames]
 
 
 def select_server() -> dict | None:
@@ -120,13 +120,18 @@ def select_server() -> dict | None:
     if not servers:
         servers = get_hostnames_from_ssh_config()
 
+    server_dict = {
+        s['hostname']: s
+        for s in servers
+    }
+
     selected = select_item_from_list(
         title="Available Servers",
-        items=servers.keys(),
+        items=server_dict.keys(),
     )
 
     if selected:
-        return servers[selected]
+        return server_dict[selected]
     
 
 @contextmanager
